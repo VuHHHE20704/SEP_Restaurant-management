@@ -28,7 +28,6 @@
 
   <ItemGroup>
     <Folder Include="Controllers\" />
-    <Folder Include="wwwroot\" />
     <Folder Include="Repositories\Implementation\" />
     <Folder Include="Repositories\Interface\" />
     <Folder Include="Services\Implementation\" />
