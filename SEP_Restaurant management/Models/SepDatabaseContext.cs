@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+
 
 namespace SEP_Restaurant_management.Models;
 
-public partial class SepDatabaseContext : DbContext
+public partial class SepDatabaseContext : IdentityDbContext<UserIdentity>
 {
     public SepDatabaseContext()
     {
@@ -47,7 +50,7 @@ public partial class SepDatabaseContext : DbContext
 
     public virtual DbSet<Shift> Shifts { get; set; }
 
-    public virtual DbSet<Staff> Staff { get; set; }
+    public virtual DbSet<Staff> Staffs { get; set; }
 
     public virtual DbSet<Supplier> Suppliers { get; set; }
 
@@ -55,11 +58,20 @@ public partial class SepDatabaseContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        var ConnectionString = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetConnectionString("MyCnn");
-        optionsBuilder.UseSqlServer(ConnectionString);
+        if (!optionsBuilder.IsConfigured)
+        {
+            var connectionString = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false)
+                .Build()
+                .GetConnectionString("MyCnn");
+
+            optionsBuilder.UseSqlServer(connectionString);
+        }
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<Category>(entity =>
         {
             entity.HasKey(e => e.CategoryId).HasName("PK__Category__19093A0BCC4099F6");
@@ -108,17 +120,23 @@ public partial class SepDatabaseContext : DbContext
 
         modelBuilder.Entity<Customer>(entity =>
         {
+            entity.ToTable("Customer");
             entity.HasKey(e => e.CustomerId).HasName("PK__Customer__A4AE64D83AEFDF51");
 
-            entity.ToTable("Customer");
-
-            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
-            entity.Property(e => e.Email).HasMaxLength(50);
-            entity.Property(e => e.Fullname).HasMaxLength(20);
-            entity.Property(e => e.Password).HasMaxLength(20);
+            entity.Property(e => e.Fullname).HasMaxLength(100);
             entity.Property(e => e.PhoneNumber).HasMaxLength(20);
-            entity.Property(e => e.Profiling).HasMaxLength(20);
-            entity.Property(e => e.Username).HasMaxLength(20);
+            entity.Property(e => e.Address).HasMaxLength(255);
+
+            entity.Property(e => e.Gender).HasColumnType("bit");
+            entity.Property(e => e.Dob).HasColumnType("date");
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+
+            entity.HasOne(c => c.User)
+                  .WithOne()
+                  .HasForeignKey<Customer>(c => c.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(c => c.UserId).IsUnique();
         });
 
         modelBuilder.Entity<Discount>(entity =>
@@ -383,17 +401,26 @@ public partial class SepDatabaseContext : DbContext
 
         modelBuilder.Entity<Staff>(entity =>
         {
+            entity.ToTable("Staff");
             entity.HasKey(e => e.StaffId).HasName("PK__Staff__96D4AB17C0B5976D");
 
+            entity.Property(e => e.Fullname).HasMaxLength(100);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+            entity.Property(e => e.StaffCode).HasMaxLength(50);
+            entity.Property(e => e.Position).HasMaxLength(50);
+
+            entity.Property(e => e.Gender).HasColumnType("bit");
+            entity.Property(e => e.Dob).HasColumnType("date");
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
-            entity.Property(e => e.Email).HasMaxLength(20);
-            entity.Property(e => e.Fullname).HasMaxLength(20);
-            entity.Property(e => e.Password).HasMaxLength(20);
-            entity.Property(e => e.PhoneNumber).HasMaxLength(10);
-            entity.Property(e => e.Profiling).HasMaxLength(20);
-            entity.Property(e => e.Role).HasMaxLength(10);
-            entity.Property(e => e.Username).HasMaxLength(20);
+
+            entity.HasOne(s => s.User)
+                  .WithOne()
+                  .HasForeignKey<Staff>(s => s.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(s => s.UserId).IsUnique();
         });
+
 
         modelBuilder.Entity<Supplier>(entity =>
         {
