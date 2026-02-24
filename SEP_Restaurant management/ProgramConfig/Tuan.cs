@@ -1,11 +1,29 @@
-﻿namespace SEP_Restaurant_management.ProgramConfig
+using SEP_Restaurant_management.Models;
+using SEP_Restaurant_management.Repositories.Implementation;
+using SEP_Restaurant_management.Repositories.Interface;
+using SEP_Restaurant_management.Services;
+using SEP_Restaurant_management.Services.Implementation;
+using SEP_Restaurant_management.Services.Interface;
+
+
+namespace SEP_Restaurant_management.ProgramConfig
 {
     public static class Tuan
     {
         public static IServiceCollection AddMyServices3(this IServiceCollection services)
         {
-            //services.AddScoped<IDisputeRepository, DisputeRepository>();
-            //services.AddScoped<IDisputeService, DisputeService>();
+
+            services.AddScoped<IUnitOfWork>(sp =>
+            {
+                var dbContext = sp.GetRequiredService<SepDatabaseContext>();
+                return new UnitOfWork<SepDatabaseContext>(dbContext);
+            });
+
+            services.AddScoped<ICustomerMenuService, CustomerMenuService>();
+            services.AddScoped<ICustomerCartService, CustomerCartService>();
+            services.AddScoped<ICustomerOrderService, CustomerOrderService>();
+
+            services.AddAutoMapper(cfg => cfg.AddProfile<MapperProfile>());
 
             return services;
         }

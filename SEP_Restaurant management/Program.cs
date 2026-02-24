@@ -17,6 +17,8 @@ builder.Services.AddMyServices3();
 builder.Services.AddMyServices4();
 // Add services to the container.
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
